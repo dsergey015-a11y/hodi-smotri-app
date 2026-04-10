@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Карта путешествий — Болгария</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root {
+  --bg: #faf8f5;
+  --card: #ffffff;
+  --text: #2c2520;
+  --body: #4a4440;
+  --muted: #8a837a;
+  --accent: #a0522d;
+  --accent-soft: #f5ebe0;
+  --border: #e8e2d8;
+  --quote-bg: #fdf8f0;
+  --quote-border: #d4a574;
+  --tag-bg: #f0ebe3;
+  --tag-text: #7a6a55;
+  --shadow: 0 1px 4px rgba(0,0,0,0.06);
+  --green: #2d6a4f;
+  --blue: #1e5a8a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1815;
+    --card: #262320;
+    --text: #e8e0d8;
+    --body: #c0b8a8;
+    --muted: #807868;
+    --accent: #d4a06a;
+    --accent-soft: #3a2a18;
+    --border: #3a3530;
+    --quote-bg: #2a2418;
+    --quote-border: #8a6a3a;
+    --tag-bg: #332e28;
+    --tag-text: #a09880;
+    --shadow: 0 1px 4px rgba(0,0,0,0.2);
+    --green: #52b788;
+    --blue: #74b9ff;
+  }
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);line-height:1.75;-webkit-font-smoothing:antialiased;padding-bottom:20px}
+
+.hero{padding:36px 20px 20px;text-align:center;border-bottom:2px solid var(--border)}
+.hero h1{font-size:26px;font-weight:700;letter-spacing:-0.3px;margin-bottom:2px}
+.hero .sub{font-size:14px;color:var(--muted);font-style:italic}
+
+.search-box{padding:12px 20px;position:sticky;top:0;z-index:100;background:var(--bg)}
+.search{width:100%;padding:10px 14px 10px 36px;border:1px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;background:var(--card);color:var(--text);outline:none}
+.search:focus{border-color:var(--accent)}
+.search-box::before{content:"🔍";position:absolute;left:32px;top:50%;transform:translateY(-50%);font-size:14px}
+
+.nav{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--bg);position:sticky;top:52px;z-index:99}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{flex-shrink:0;padding:10px 16px;font-family:-apple-system,sans-serif;font-size:13px;font-weight:500;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.page{display:none;max-width:680px;margin:0 auto}
+.page.active{display:block}
+
+.article{padding:24px 20px;border-bottom:1px solid var(--border)}
+.article:last-child{border-bottom:none}
+.article h2{font-size:22px;font-weight:700;margin-bottom:8px;line-height:1.3;color:var(--text)}
+.article h3{font-size:17px;font-weight:700;margin:20px 0 6px;line-height:1.3;color:var(--text)}
+.article p{margin-bottom:12px;font-size:15.5px;color:var(--body)}
+.label{font-family:-apple-system,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent);font-weight:600;margin-bottom:6px}
+
+.quote{border-left:3px solid var(--quote-border);padding:12px 16px;margin:14px 0;background:var(--quote-bg);border-radius:0 8px 8px 0;font-style:italic;font-size:15px;color:var(--body);line-height:1.6}
+
+.info{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:14px 0;font-family:-apple-system,sans-serif;font-size:13.5px;line-height:1.5;color:var(--body)}
+.info .info-title{font-weight:600;font-size:12px;margin-bottom:4px;color:var(--accent)}
+.info div{margin-bottom:3px}
+.info div:last-child{margin-bottom:0}
+
+.tag{display:inline-block;font-family:-apple-system,sans-serif;font-size:12px;padding:3px 10px;border-radius:12px;background:var(--tag-bg);color:var(--tag-text);margin:2px 2px;font-weight:500}
+
+.place{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin:12px 0;box-shadow:var(--shadow);cursor:pointer;transition:transform .1s}
+.place:active{transform:scale(.99)}
+.place-name{font-size:17px;font-weight:700;margin-bottom:2px}
+.place-what{font-family:-apple-system,sans-serif;font-size:13px;color:var(--muted);margin-bottom:8px}
+.place-body{font-size:14.5px;color:var(--body);display:none}
+.place.open .place-body{display:block}
+.place-toggle{font-family:-apple-system,sans-serif;font-size:12px;color:var(--accent);margin-top:4px}
+.place.open .place-toggle{display:none}
+
+.divider{text-align:center;padding:16px;color:var(--muted);font-size:16px;letter-spacing:6px}
+
+.season-row{display:flex;gap:8px;margin:8px 0;font-family:-apple-system,sans-serif;font-size:13px;align-items:baseline}
+.season-label{flex-shrink:0;width:70px;font-weight:600;color:var(--accent)}
+.season-text{color:var(--body)}
+
+.counter{text-align:center;padding:16px;font-family:-apple-system,sans-serif}
+.counter-num{font-size:13px;color:var(--muted)}
+
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Карта путешествий</h1>
+  <div class="sub">Болгария глазами «Ходи-смотри»</div>
+</div>
+
+<div class="search-box">
+  <input type="text" class="search" id="search" placeholder="Найти место...">
+</div>
+
+<div class="nav" id="nav">
+  <button class="nav-btn active" data-p="intro">Обзор</button>
+  <button class="nav-btn" data-p="varna">Варна</button>
+  <button class="nav-btn" data-p="around">Рядом</button>
+  <button class="nav-btn" data-p="northeast">Северо-восток</button>
+  <button class="nav-btn" data-p="central">Центр</button>
+  <button class="nav-btn" data-p="south">Юг</button>
+  <button class="nav-btn" data-p="west">Запад</button>
+  <button class="nav-btn" data-p="abroad">За рубежом</button>
+</div>
+
+<!-- ========== ОБЗОР ========== -->
+<div class="page active" id="p-intro">
+<div class="article">
+  <div class="label">Философия</div>
+  <h2>Медленный зыринг</h2>
+  <p>Медленное путешествие — это не экскурсия. Это когда идёшь не к цели, а внутрь места. Когда не бежишь от точки к точке, а разговариваешь с городом. Каждые два часа — потягушеньки и дыхание. В поездах — не пустая дорога, а сказки.</p>
+  <div class="quote">Я люблю этот город всем сердцем. Но одной только любви недостаточно — поэтому я довольно много о нём знаю, постоянно учу что-то новое — и всё равно бегу к нему не как на лекцию, а как на свидание.</div>
+  <p>Болгария — это не пляж и не дешёвый отдых. Это 7500 лет непрерывной цивилизации, три империи одна на другой, фракийцы под римлянами, римляне под болгарами, болгары под турками — и каждый слой виден, если знать, куда смотреть.</p>
+</div>
+
+<div class="article">
+  <div class="label">Сезоны</div>
+  <h2>Когда куда ехать</h2>
+  <div class="season-row"><span class="season-label">Весна</span><span class="season-text">Города на поездах, природа (Ятата, леса), Кукерландия (Ямбол, март), Пасха</span></div>
+  <div class="season-row"><span class="season-label">Лето</span><span class="season-text">Вечерние прогулки (жара!), Евксиноград, ночной парк (соловьи, светлячки), море</span></div>
+  <div class="season-row"><span class="season-label">Осень</span><span class="season-text">Родопская узкоколейка, Мадара, Девня (мозаики лучше видны), Пловдив, София</span></div>
+  <div class="season-row"><span class="season-label">Зима</span><span class="season-text">Птицы в парке, Сурва (Перник, январь), маскарады, зимние дегустации</span></div>
+</div>
+
+<div class="article">
+  <div class="label">География</div>
+  <h2>55+ мест на карте</h2>
+  <p>Варна и окрестности, 20+ городов по всей Болгарии, Румыния, Стамбул. От неолита (Провадия, 7500 лет) до брутализма (Шумен, 1981). От полупустыни (Побитые камни) до затопленного леса (Камчия). От фламинго (Бургас) до соловьёв (Приморский парк, июнь).</p>
+  <p>
+    <span class="tag">3 объекта ЮНЕСКО</span>
+    <span class="tag">узкоколейка через горы</span>
+    <span class="tag">208 видов птиц в одном месте</span>
+    <span class="tag">первый город Европы</span>
+    <span class="tag">фракийские гробницы</span>
+    <span class="tag">кукеры и маскарады</span>
+  </p>
+</div>
+</div>
+
+<!-- ========== ВАРНА ========== -->
+<div class="page" id="p-varna">
+
+<div class="article">
+  <div class="label">Город</div>
+  <h2>Варна — 1300 лет под ногами</h2>
+  <p>Под современной Варной лежит античный Одессос — греческая колония, потом римский город, потом ранневизантийский. 1300 лет цивилизации под каждой улицей. Потом — османские века, Освобождение, модерн и баухаус начала XX века, социалистический брутализм, современность. Всё — в пешей доступности.</p>
+  <div class="quote">Запахи в парке потрясающие: мокрое море, мокрая трава, узкие сильные полосы сирени, нежные облака глицинии, лимонный дезинфектант, тёплая земля — и столько кислорода, что пьянеешь влёт.</div>
+</div>
+
+<div class="article">
+  <h3>Античный слой</h3>
+
+  <div class="place" data-search="термы одессос римские бани">
+    <div class="place-name">Большие римские термы</div>
+    <div class="place-what">Крупнейшие римские бани на Балканах</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Руины II века н.э. — главный видимый артефакт Одессоса. Размах поражает даже в руинах: римляне строили бани как дворцы. Часть маршрута «Вода Одессоса» — как римляне приручили воду в этом городе.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="археологический музей шкорпил золото">
+    <div class="place-name">Археологический музей</div>
+    <div class="place-what">У памятника братьям Шкорпил — основателям болгарской археологии</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Один из крупнейших в Болгарии. Золотая комната с находками от Одессоса до средневековья. Саркофаги, мозаики, фракийские украшения. Музей можно проходить по эпохам: праистория → античность → раннее христианство → Первое Болгарское царство → Средневековье.</p>
+    </div>
+  </div>
+
+  <h3>Христианский слой</h3>
+
+  <div class="place" data-search="кафедральный собор успение кафедрал">
+    <div class="place-name">Кафедральный собор Успения Богородицы</div>
+    <div class="place-what">Главный ориентир города — точка отсчёта всех маршрутов</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Построен после Освобождения от османского ига. Площадь перед ним — стартовая точка большинства маршрутов. Рядом начинается пешеходная зона, рядом музеи, рядом море. «От Кафедрала» — универсальный ответ на вопрос «Где встречаемся?»</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="церкви храмы базилика морской">
+    <div class="place-name">Церкви старого города</div>
+    <div class="place-what">2000 лет христианства в одной прогулке</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>От Кафедрала через все храмы: Морской храм (моряки и порт), базилика Св. Атанаса, старая сефардская синагога (многоконфессиональность Варны), первая школа, самая старая церковь, руины базилики V века. Два часа — и видишь, как менялась вера города.</p>
+    </div>
+  </div>
+
+  <h3>Османский и возрожденский слой</h3>
+
+  <div class="place" data-search="османская крепость стены старые здания">
+    <div class="place-name">Варна перед Освобождением</div>
+    <div class="place-what">Самые старые здания, крепостные стены, восточные переулки</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Османское прошлое спрятано за современными фасадами, но оно там — за каждым поворотом. Крепостные стены, восточные переулки, самые старые здания города. Этнографический музей — финальная точка: кто жил, как жил, чем жил.</p>
+    </div>
+  </div>
+
+  <h3>Модерн и XX век</h3>
+
+  <div class="place" data-search="модерн баухаус сецессион архитектура">
+    <div class="place-name">Архитектура модерна</div>
+    <div class="place-what">Сецессион, баухаус, конструктивизм — джаз и дирижабли в камне</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Варна начала XX века — космополитичный порт: Гранд-отели «Нью-Йорк» и «Лондон» (архитектор Дабко Дабков), Центральная почта 1930-х, здания вдоль бульваров Марии-Луизы и Сливница. Отдельная тема — брутализм эпохи социализма и стрит-арт (студия Кемсы).</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="балканская норма синий рынок кварталы">
+    <div class="place-name">Кварталы за Синим рынком</div>
+    <div class="place-what">Настоящая балканская повседневность, не туристическая</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Маршрут «Балканская норма: здесь — так». Кварталы Зимно кино Тракия, Централен пазар. Подлинная жизнь, которую туристы никогда не видят. Здесь понимаешь, как устроена Болгария по-настоящему.</p>
+    </div>
+  </div>
+
+  <h3>Пешеходная зона</h3>
+
+  <div class="place" data-search="пешеходка скульптура стрит-арт дабко">
+    <div class="place-name">Поднебесная галерея</div>
+    <div class="place-what">Город как музей под открытым небом</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Городская скульптура и стрит-арт. Памятник Дабко Дабкову на пешеходке (архитектор, построивший полгорода), скульптура Кирилла Шиварова, работы студии Кемсы, «Тени на камне», Статуя Свободы (фестиваль «Контемпо» 2015). Три часа — и смотришь на стены иначе.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider">* * *</div>
+
+<div class="article">
+  <h2>Приморский парк</h2>
+  <p>Пять километров в длину, километр в ширину. Для варненцев — как море: всегда рядом, всегда разный.</p>
+  <div class="quote">Соловья вы знаете, а чаечка стонет и гогочет на заднем плане. Сычика зовут «чухал», это его «уууу... уууу...» К концу лета запишу песнь голодного филинёнка.</div>
+
+  <div class="place" data-search="аквариум обсерватория парк каштаны пруд">
+    <div class="place-name">Маршрут через парк</div>
+    <div class="place-what">Аквариум → обсерватория → каштаны → Альпинеум → Детский кът → пруд</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Парк — это экосистема. Аквариум (научно-исследовательский центр), обсерватория, розовые каштаны, каменистый сад Альпинеум, зоопарк (пеликан Стойчо, Спасательный центр диких птиц), пруд с лебедями зимой. Морское казино — лучшая смотровая на море из парка.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="соловьи светлячки сычики ночной июнь">
+    <div class="place-name">Ночной парк (только июнь)</div>
+    <div class="place-what">Соловьи, сычики, светлячки — одновременно</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Единственный месяц, когда всё совпадает: поют соловьи, стонут сычики, мерцают светлячки. С 20:00 от Пантеона. Палочники, жужелицы, ночные бабочки. Иногда с моря доносятся голоса дельфинов.</p>
+      <div class="info"><div class="info-title">Когда идти</div><div>Только июнь, с 20:00. В другие месяцы не работает — соловьи улетают.</div></div>
+    </div>
+  </div>
+
+  <div class="place" data-search="лебеди зимние птицы зимовка январь">
+    <div class="place-name">Зимние птицы</div>
+    <div class="place-what">Перелётные и неперелётные, лебеди у пруда</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Январь. Лебедей кормят горошком и огурцами — НЕ хлебом. Зимой парк — другой: тише, холоднее, и птиц, которых летом не увидишь.</p>
+    </div>
+  </div>
+</div>
+
+<div class="article">
+  <div class="label">Еда</div>
+  <h2>Гастрономическая Варна</h2>
+  <p>Маршрут «Съешь Варну» — краеведческая прогулка через еду. Есть аудиогид на izi.travel для самостоятельного прохождения. Болгарская кухня — это не только шопский салат: это мавруд и широка мелнишка лоза, брынза по возрасту и типу молока, козунак и штоллены, пелин и сливовое вино.</p>
+  <div class="quote">Витрина любимого магазина показывает фразы «сынок, ты чего в одежде, мы же жабы» и «когда все хотят похудеть, а мы сразу родились идеальными»</div>
+</div>
+</div>
+
+<!-- ========== ОКРЕСТНОСТИ ========== -->
+<div class="page" id="p-around">
+
+<div class="article">
+  <div class="label">В пределах часа от Варны</div>
+  <h2>Окрестности</h2>
+
+  <div class="place" data-search="евксиноград дворец парк царский пальма">
+    <div class="place-name">Евксиноград</div>
+    <div class="place-what">Дворец и парк — летняя резиденция болгарских царей</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Парк с растениями всех широт, разбитый по приказу царя Фердинанда. Пальмовая оранжерея — пальме около 130 лет. Царский виноградник (вино можно пробовать). Летний дворец — рассказывают об эпохе Фердинанда, Бориса III, Симеона II.</p>
+      <div class="info"><div class="info-title">Важно</div><div>Без гида внутрь не попасть. Нужна регистрация с ФИО и датой рождения. Дети до 9 лет не допускаются. С апреля по октябрь.</div></div>
+    </div>
+  </div>
+
+  <div class="place" data-search="аладжа скальный монастырь исихасты катакомбы">
+    <div class="place-name">Аладжа</div>
+    <div class="place-what">Скальный монастырь — кельи и катакомбы в камне</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Средневековый монастырь, вырубленный в известняковой скале. Здесь жили монахи-исихасты — те, кто искал абсолютную тишину. Катакомбы, музей христианства. Вокруг — лес, запах хвои, розалия (голубой жук), ночные бабочки.</p>
+      <div class="info"><div class="info-title">Когда</div><div>Весна и осень. Автобус из Варны.</div></div>
+    </div>
+  </div>
+
+  <div class="place" data-search="ятата птицы бёрдвотчинг 208 краснокнижных паром">
+    <div class="place-name">Ятата</div>
+    <div class="place-what">208 видов птиц, 60+ краснокнижных — в 17 км от Варны</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <div class="quote">Увидим тех, которые ещё не улетели и тех, которые уже прилетели. Поговорим о жизни муравьёв-психопатов, о крепостных стенах из отрубей и о подземных городах.</div>
+      <p>Природоохранная зона. Каменистая полупустыня, подлесок, луга, болота, лес, поле с коровами — всё на одном маршруте. Лебеди, выпь, лысухи, пеликаны, бакланы, цапли. Маршрут не кольцевой: такси → пешком через всю Ятату → Белослав → паром через озеро → поезд в Варну. По дороге — горячий хлеб с хлебозавода.</p>
+      <div class="info"><div class="info-title">Что брать</div><div>Длинные штаны, закрытая обувь, термос, вода, бутерброды. Проводится 2–3 раза в год — нужно ловить анонс.</div></div>
+    </div>
+  </div>
+
+  <div class="place" data-search="побитые камни каменный лес полупустыня дикилиташ">
+    <div class="place-name">Побитые камни</div>
+    <div class="place-what">Каменные столбы в полупустыне — «другие планеты»</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>12 групп каменных столбов вокруг Варны. Полупустынный ландшафт, непохожий ни на что в Болгарии. «Небесные врата», «Столетнее дерево». Маршрут: автобус до с. Слънчево → пешком ~10 км через малую группу → главная группа → станция Белослав → поезд домой.</p>
+      <div class="info"><div class="info-title">Экипировка</div><div>Длинные рукава и штаны, кроссовки, 1,5 л воды, крем, кепка. Лето.</div></div>
+    </div>
+  </div>
+
+  <div class="place" data-search="камчия лонгоз лодки затопленный лес река">
+    <div class="place-name">Камчия</div>
+    <div class="place-what">Устье реки — затопленный лес (лонгоз)</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Лонгоз — пойменный лес, где деревья стоят в воде. Уникальная экосистема. Лодочная прогулка по реке, механа на берегу. Автомобильная поездка, полдня.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="девня марцианополь мозаики источники бирюзовые">
+    <div class="place-name">Девня / Марцианополь</div>
+    <div class="place-what">Римские мозаики и бирюзовые карстовые источники</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Римский Марцианополис — столица провинции Нижняя Мёзия. Музей мозаик с уникальными напольными мозаиками. «Волшебные источники» — бирюзовые карстовые воды. Пырленки и печёнка с брусникой, козы.</p>
+      <div class="info"><div class="info-title">Совет</div><div>Лучше поздней осенью — влажно, мозаики видны ярче.</div></div>
+    </div>
+  </div>
+
+  <div class="place" data-search="экопарк ботанический сад шинрин-йоку лесное купание">
+    <div class="place-name">Экопарк (Ботанический сад)</div>
+    <div class="place-what">Лесное купание — адаптация японского шинрин-йоку</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Несколько природных зон в одном месте. Богомол на руке, пауки, бронзовки, сойки, ящерицы, цветущая юкка. Римская гробница в глубине сада. Можно ходить босиком по траве. Автобусы 9, 109, 209б, 409.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="джанавара змеиный холм раннехристианский">
+    <div class="place-name">Джанавара (Змеиный холм)</div>
+    <div class="place-what">Руины раннехристианского монастыря в лесу</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Малоизвестное место: руины монастыря сирийских монофизитов. Лес, тишина, археология. Зима и весна.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== СЕВЕРО-ВОСТОК ========== -->
+<div class="page" id="p-northeast">
+<div class="article">
+  <div class="label">Поездом из Варны</div>
+  <h2>Северо-восток Болгарии</h2>
+
+  <div class="place" data-search="мадара конник юнеско скальный барельеф">
+    <div class="place-name">Мадара — Мадарский конник (ЮНЕСКО)</div>
+    <div class="place-what">Единственный подобный скальный барельеф в Европе</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Конник на скале высотой 23 метра — символ Первого болгарского царства, VIII век. Рядом — пещеры (от палеолита), храмовый холм, римская вилла, капище. Лесное купание на холме. Целый день.</p>
+      <div class="info"><div class="info-title">Как добраться</div><div>Поезд Варна → Шумен + такси до Мадары. Обратно пешком до станции + электричка.</div></div>
+    </div>
+  </div>
+
+  <div class="place" data-search="шумен памятник 1300 томбул мечеть ступени брутализм">
+    <div class="place-name">Шумен</div>
+    <div class="place-what">1300 ступеней к бруталистскому памятнику + крупнейшая мечеть Балкан</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Памятник «1300 лет Болгарии» — монументальная скульптурная группа на холме. Шедевр брутализма. Подвал-лабиринт с инфоцентром. 1300 ступеней вниз через лес и дачи (идём сверху вниз). Потом — Куршум-чешма (фонтан), Часовая башня, Безистен (крытый рынок). Полностью отреставрированная Томбул-мечеть — можно валяться на коврах, фонтан во дворе, ажурная решётка.</p>
+      <div class="quote">В подвале памятника — лабиринт. Даша несла свет. Мы несли восторг.</div>
+      <div class="info"><div class="info-title">Где обедать</div><div>Попшейтанова къща — традиционная кухня, по выходным бронировать!</div></div>
+    </div>
+  </div>
+
+  <div class="place" data-search="провадия солницата овеч крепость соль 7500">
+    <div class="place-name">Провадия — первый город Европы</div>
+    <div class="place-what">Солницата (7500 лет!) + средневековая крепость на скале</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Солницата — древнейший город Европы. Центр добычи соли в неолите, 7500 лет непрерывной цивилизации. Крепость Овеч — средневековая, на скальном плато, виды на всю долину. Скальный монастырь Шашкъните. Час на электричке из Варны.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="плиска базилика первая столица">
+    <div class="place-name">Плиска</div>
+    <div class="place-what">Первая столица Болгарии (681–893)</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Большая базилика — крупнейшая средневековая церковь Болгарии. Начало болгарской государственности. Поезд до Каспичан + такси.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="преслав золотая церковь ротонда вторая столица">
+    <div class="place-name">Преслав</div>
+    <div class="place-what">Вторая столица (893–972) — Золотая церковь</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Золотая церковь (Кръглата църква) — уникальная ротонда с керамической облицовкой. Эпоха «Золотого века» болгарской культуры.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="балчик дворец мария румынская кактусы">
+    <div class="place-name">Балчик</div>
+    <div class="place-what">Парк и дворец румынской королевы Марии</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Ботанический сад с уникальной коллекцией кактусов. Дворец на скале у моря. Виноградник. Пять часов рассказов, только для маленькой компании.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== ЦЕНТР ========== -->
+<div class="page" id="p-central">
+<div class="article">
+  <div class="label">Сердце страны</div>
+  <h2>Центральная Болгария</h2>
+
+  <div class="place" data-search="велико тырново трапезица асенова янтра второе царство">
+    <div class="place-name">Велико Тырново</div>
+    <div class="place-what">Столица Второго царства — город на холмах над рекой</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <div class="quote">Мы будем пить с древней могучей рекой, дёргать злого и всесильного царя за нос, разбираться с разбойниками, а также примерять на себя девятнадцатый век и любоваться любоваться любоваться.</div>
+      <p>Трапезица — холм-крепость с руинами церквей. Асенова Махала — живописный квартал у реки Янтры, которая петляет вокруг города. Ремесленные улочки XIX века. Четыре часа в поезде (с рассказами), пять часов гуляем.</p>
+      <div class="info"><div class="info-title">Транспорт</div><div>Поезд из Варны 7:45, обратно вечером. Термосы и бутерброды — буфета в поезде нет.</div></div>
+    </div>
+  </div>
+
+  <div class="place" data-search="тырговиште вароша захариева сахат джамия">
+    <div class="place-name">Тырговиште</div>
+    <div class="place-what">Сахат Джамия, квартал Вароша, возрожденская архитектура</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Бывший Эски Джумайя — один из крупных городов Османской Болгарии. Захариевата кышта (возрожденский дом), квартал Вароша с храмами. Поезд из Варны.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="трявна часовая башня возрождение резчики">
+    <div class="place-name">Трявна</div>
+    <div class="place-what">Город мастеров-резчиков — каменная черепица и мостик</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Маленький город, который умещается в один длинный день. Часовая башня, возрожденские дома, каменная черепица, мостик через реку. Традиция резьбы по дереву.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="дряново бачо киро пещера монастырь водопады">
+    <div class="place-name">Дряново</div>
+    <div class="place-what">Пещера Бачо Киро — колыбель европейского человечества</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Одна из первых исследованных пещер в Болгарии. Дряновский монастырь архангела Михаила — средневековый, связан с восстанием 1876 года. Водопады в ущелье. Поезд из Варны в 7:30.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="казанлък долина роз фракийские курганы гробница">
+    <div class="place-name">Казанлък</div>
+    <div class="place-what">Долина роз + фракийская гробница (ЮНЕСКО)</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Центр производства розового масла. Фракийские курганы — гробница с уникальными фресками IV века до н.э. (ЮНЕСКО). Место, где древняя Фракия ощущается сильнее всего.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="стара загора неолит мозаики зелёные балканы">
+    <div class="place-name">Стара Загора</div>
+    <div class="place-what">Неолитические жилища + римские мозаики</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Одни из лучших сохранённых неолитических жилищ в Европе. Римские улицы и мозаики. Центр «Зелёные Балканы» — природозащитная организация. Липы. Ночная прогулка к минеральному источнику.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== ЮГ ========== -->
+<div class="page" id="p-south">
+<div class="article">
+  <div class="label">На юг</div>
+  <h2>Юг Болгарии</h2>
+
+  <div class="place" data-search="пловдив капана старый город амфитеатр семь холмов фахверк">
+    <div class="place-name">Пловдив</div>
+    <div class="place-what">Один из старейших городов мира — семь холмов, фахверк, амфитеатр</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Горсад, мечеть, Капана (квартал ремесленников → арт-район), амфитеатр II века (до сих пор используется!), Восточные ворота, Стария град с возрожденскими домами. Большая и Малая базилики с античными мозаиками. Механа «Чичовци». От обеда до темноты — пять-шесть часов.</p>
+      <div class="quote">Айлякрии — пловдивское слово для тех, кто умеет сидеть в кафе и смотреть на жизнь. Главная пловдивская добродетель.</div>
+    </div>
+  </div>
+
+  <div class="place" data-search="родопская узкоколейка банско септември поезд горы">
+    <div class="place-name">Родопская узкоколейка</div>
+    <div class="place-what">125 км через горы за 5 часов, высота до 1267 м</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <div class="quote">Госпожа Светла Матеева — голос узкоколейки. Она стоит за стойкой вагона-буфета и разливает «Пиринское пиво» на высоте 1200 метров над уровнем моря.</div>
+      <p>Банско ↔ Септември. Средняя скорость 35 км/ч — «гномский поезд» через горы, ущелья, тоннели. Одна из самых живописных железных дорог Европы. Проводится дважды в год — весной и осенью.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="несебр юнеско храмы средневековый полуостров">
+    <div class="place-name">Несебр (ЮНЕСКО)</div>
+    <div class="place-what">Древний город на полуострове — концентрация средневековых церквей</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Крошечный полуостров, набитый храмами. Раннехристианская и средневековая архитектура — каждый поворот открывает новую церковь.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="бургас пода фламинго атанасовское озеро">
+    <div class="place-name">Бургас</div>
+    <div class="place-what">Пода (птицы), Атанасовское озеро (фламинго!)</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Природозащитный центр Пода — бёрдвотчинг. Атанасовское озеро — настоящие фламинго под Бургасом. Археологический и Этнографический музеи. Кафе Дабов (хороший кофе). Деултум — римский город неподалёку.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="созополь старый город мыс скамни">
+    <div class="place-name">Созополь</div>
+    <div class="place-what">Старый город на мысу, мидийный пляж</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body"><p>Живописный старый город, мыс Скамни с видами на море. Механа «Созополь».</p></div>
+  </div>
+
+  <div class="place" data-search="поморие фракийский храм музей соли фламинго">
+    <div class="place-name">Поморие</div>
+    <div class="place-what">Фракийский храм, музей соли, фламинго на косе</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body"><p>Уникальная купольная гробница-тор (фракийская). Музей соли — история солеварения. На Поморийской косе — фламинго, природозащитный центр с орнитологами.</p></div>
+  </div>
+
+  <div class="place" data-search="ямбол кукерландия кукеры маскарады фестиваль март">
+    <div class="place-name">Ямбол — Кукерландия</div>
+    <div class="place-what">Крупнейший фестиваль кукеров — древнеязыческие маскарады (март)</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Кукеры — ряженые в чудовищных меховых костюмах с колокольцами. Древнеболгарская языческая традиция отпугивания злых духов и пробуждения весны. Крытый рынок (мультимедийный центр). Кабиле — фракийский город неподалёку. Только в марте.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="рильский монастырь юнеско хрельова католикон">
+    <div class="place-name">Рильский монастырь (ЮНЕСКО)</div>
+    <div class="place-what">Крупнейший монастырь Болгарии — Католикон, Хрельова башня</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Католикон (главный храм) с уникальными фресками. Хрельова башня XIV века — единственная средневековая часть. Сокровищница. Вино из Мелника в странноприемнице. Из Софии — однодневная поездка.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== ЗАПАД ========== -->
+<div class="page" id="p-west">
+<div class="article">
+  <div class="label">Столица и горы</div>
+  <h2>Запад Болгарии</h2>
+
+  <div class="place" data-search="софия сердика львов орлов ротонда александр невский">
+    <div class="place-name">София</div>
+    <div class="place-what">2 км за 6 часов — от Львова моста до Орлова</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body">
+      <p>Сердика — римский город в метро (буквально — раскопки видны на станции). Ротонда Св. Георги (IV век) — старейшая церковь. Света Петка, Света София (дала имя городу), Александр Невский. Мечеть (валялись на ковре), синагога. Президентство. Маршрут «Двадцатый век: тени и свет» — вечерняя прогулка через зелёные клинья.</p>
+    </div>
+  </div>
+
+  <div class="place" data-search="враца врачанский балкан пещеры горы">
+    <div class="place-name">Враца</div>
+    <div class="place-what">Горы, пещеры, Врачанский Балкан</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body"><p>Природный парк. Горы, пещера (въехали на городском автобусе!), фонтаны, черепичные крыши.</p></div>
+  </div>
+
+  <div class="place" data-search="перник сурва маскарады кукеры январь">
+    <div class="place-name">Перник — Сурва (январь)</div>
+    <div class="place-what">Международный фестиваль зимних маскарадов</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body"><p>«Сурва» — крупнейший международный фестиваль кукеров и сурвакаров. Древнеязыческая традиция середины зимы. Январь.</p></div>
+  </div>
+</div>
+</div>
+
+<!-- ========== ЗА РУБЕЖОМ ========== -->
+<div class="page" id="p-abroad">
+<div class="article">
+  <div class="label">Соседи</div>
+  <h2>За пределами Болгарии</h2>
+
+  <div class="place" data-search="констанца румыния порт исторический музей">
+    <div class="place-name">Констанца (Румыния)</div>
+    <div class="place-what">Крупнейший порт Румынии — исторический музей, коврига с вишней</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body"><p>Можно доехать за день из Варны. Исторический музей, кефир и творог (молочные традиции!), румынская коврига с вишней.</p></div>
+  </div>
+
+  <div class="place" data-search="бухарест музей румынской деревни">
+    <div class="place-name">Бухарест</div>
+    <div class="place-what">Музей румынской деревни — этнография под открытым небом</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body"><p>Этнографический музей под открытым небом — дома и хозяйства со всей Румынии, собранные в одном парке.</p></div>
+  </div>
+
+  <div class="place" data-search="брашов трансильвания карпаты">
+    <div class="place-name">Брашов (Трансильвания)</div>
+    <div class="place-what">Средневековый город в Карпатах</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body"><p>Можно из Бухареста на день. Средневековый саксонский город в горах.</p></div>
+  </div>
+
+  <div class="place" data-search="стамбул айя софия босфор">
+    <div class="place-name">Стамбул</div>
+    <div class="place-what">Айя София, мост Мимара Синана, Кадыкёй</div>
+    <div class="place-toggle">подробнее →</div>
+    <div class="place-body"><p>Автобус из Болгарии. Фатих, Босфор, «Неизвестный Стамбул». Учебные поездки с профсоюзом экскурсоводов.</p></div>
+  </div>
+</div>
+</div>
+
+<div class="counter"><span class="counter-num" id="placeCount"></span></div>
+
+<script>
+if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand()}
+
+// Nav
+document.getElementById('nav').addEventListener('click',e=>{
+  const b=e.target.closest('.nav-btn');if(!b)return;
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('p-'+b.dataset.p).classList.add('active');
+  window.scrollTo(0,0);
+  document.getElementById('search').value='';
+  showAll();
+});
+
+// Expand place cards
+document.addEventListener('click',e=>{
+  const p=e.target.closest('.place');
+  if(p)p.classList.toggle('open');
+});
+
+// Search
+const searchInput=document.getElementById('search');
+searchInput.addEventListener('input',()=>{
+  const q=searchInput.value.toLowerCase().trim();
+  if(!q){showAll();return;}
+  // show all pages, filter places
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('active'));
+  document.querySelectorAll('.place').forEach(p=>{
+    const text=(p.dataset.search+' '+p.textContent).toLowerCase();
+    p.classList.toggle('hidden',!text.includes(q));
+  });
+  // hide articles that have no visible places
+  document.querySelectorAll('.article').forEach(a=>{
+    const places=a.querySelectorAll('.place');
+    if(places.length>0){
+      const anyVisible=[...places].some(p=>!p.classList.contains('hidden'));
+      // keep article visible if it has visible places or no places at all
+      if(!anyVisible)a.style.display='none'; else a.style.display='';
+    } else {
+      a.style.display='none'; // hide text-only articles during search
+    }
+  });
+});
+
+function showAll(){
+  document.querySelectorAll('.place').forEach(p=>p.classList.remove('hidden'));
+  document.querySelectorAll('.article').forEach(a=>a.style.display='');
+  // restore only active page
+  const activeBtn=document.querySelector('.nav-btn.active');
+  if(activeBtn){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('p-'+activeBtn.dataset.p).classList.add('active');
+  }
+}
+
+// Count
+document.getElementById('placeCount').textContent=document.querySelectorAll('.place').length+' мест на карте';
+</script>
+</body>
+</html>
